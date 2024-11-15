@@ -12,19 +12,43 @@ const API_ENDPOINTS = [
 
 const initializeApi = async () => {
   if (!api) {
-    for (const endpoint of API_ENDPOINTS) {
-      try {
-        api = new RadioBrowserApi('InternetRadioWebUI/1.0.0', endpoint);
-        // Test the connection
-        await api.searchStations({
-          limit: 1,
-          hidebroken: true
-        });
-        console.log(`Successfully connected to ${endpoint}`);
-        break;
-      } catch (error) {
-        console.warn(`Failed to connect to ${endpoint}:`, error);
-        api = null;
+    // Get list of available servers first
+    try {
+      const response = await fetch('https://all.api.radio-browser.info/json/servers');
+      const servers = await response.json();
+      
+      // Try each server until one works
+      for (const server of servers) {
+        try {
+          api = new RadioBrowserApi('InternetRadioWebUI/1.0.0', server.name);
+          // Test connection and get server config
+          const config = await api.getServerConfig();
+          console.log(`Connected to ${server.name}, cache TTL: ${config.cache_ttl}s`);
+          
+          // Store server config for cache management
+          cache.serverConfig = config;
+          break;
+        } catch (error) {
+          console.warn(`Failed to connect to ${server.name}:`, error);
+          api = null;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to get server list:', error);
+    }
+
+    if (!api) {
+      // Fallback to hardcoded endpoints if server discovery fails
+      for (const endpoint of API_ENDPOINTS) {
+        try {
+          api = new RadioBrowserApi('InternetRadioWebUI/1.0.0', endpoint);
+          await api.searchStations({ limit: 1 });
+          console.log(`Connected to fallback endpoint ${endpoint}`);
+          break;
+        } catch (error) {
+          console.warn(`Failed to connect to ${endpoint}:`, error);
+          api = null;
+        }
       }
     }
     
