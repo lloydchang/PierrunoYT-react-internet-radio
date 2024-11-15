@@ -2,8 +2,10 @@ import React from 'react';
 
 function StationList({ stations, onStationSelect, currentStation }) {
   const formatTags = (tags) => {
-    if (!tags || typeof tags !== 'string') return '';
-    return tags.split(',')
+    if (!tags) return '';
+    // Handle both string and array tag formats
+    const tagArray = Array.isArray(tags) ? tags : typeof tags === 'string' ? tags.split(',') : [];
+    return tagArray
       .filter(tag => tag && tag.trim())
       .slice(0, 3)
       .map(tag => tag.trim())
