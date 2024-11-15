@@ -85,40 +85,37 @@ export const fetchStations = async () => {
 
     console.log('Fetching stations...');
 
-    // Fetch stations in batches of 5000
-    const batchSize = 5000;
+    // Fetch stations in parallel batches for better performance
+    const batchSize = 10000;
+    const maxStations = 50000;
     let allStations = [];
-    let offset = 0;
-    let hasMore = true;
-
-    while (hasMore) {
-      console.log(`Fetching stations batch with offset ${offset}...`);
-      const batch = await api.searchStations({
-        limit: batchSize,
-        offset: offset,
-        hidebroken: true,
-        order: 'clickcount',
-        reverse: true,
-        lastCheckOk: true,
-        bitrateMin: 64,
-        codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
-        hasGeoInfo: true,
-        removeDuplicates: true
-      });
-
-      if (!batch || batch.length === 0) {
-        hasMore = false;
-      } else {
-        allStations = [...allStations, ...batch];
-        offset += batchSize;
-        
-        // Stop after 30,000 stations to prevent excessive loading
-        if (allStations.length >= 30000) {
-          hasMore = false;
-          console.log('Reached maximum station limit');
-        }
-      }
+    
+    // Create array of batch promises
+    const batchPromises = [];
+    for (let offset = 0; offset < maxStations; offset += batchSize) {
+      batchPromises.push(
+        api.searchStations({
+          limit: batchSize,
+          offset: offset,
+          hidebroken: true,
+          order: 'clickcount',
+          reverse: true,
+          lastCheckOk: true,
+          bitrateMin: 64,
+          codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
+          hasGeoInfo: true,
+          removeDuplicates: true
+        })
+      );
     }
+
+    // Fetch all batches in parallel
+    console.log(`Fetching ${batchPromises.length} batches of stations...`);
+    const batchResults = await Promise.all(batchPromises);
+    
+    // Combine all batch results
+    allStations = batchResults.flat().filter(Boolean);
+    console.log(`Total stations fetched: ${allStations.length}`);
 
     const stations = allStations;
 
