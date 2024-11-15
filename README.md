@@ -68,3 +68,82 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# Internet Radio Web UI
+
+A modern web application for streaming internet radio stations, built with React and the Radio Browser API.
+
+## Features
+
+- 🎵 Stream radio stations from around the world
+- 🔍 Search functionality with smart caching
+- 📻 Display station details including bitrate, codec, and language
+- ⭐ Station popularity voting system
+- 🌐 Country and language filtering
+- 💫 Responsive design with clean UI
+- 🚀 Performance optimized with smart caching
+
+## Technical Details
+
+### Architecture
+
+The application is built using:
+- React for the frontend UI
+- Radio Browser API for station data
+- Custom caching system for improved performance
+- Error handling with intelligent retry logic
+
+### Key Components
+
+- `StationList`: Renders the list of radio stations with detailed information
+- `Player`: Handles audio playback and controls
+- `SearchBar`: Manages station search functionality
+- `radioAPI`: Service layer for API communication
+
+### Caching System
+
+The application implements a sophisticated caching system that:
+- Caches station lists for 5 minutes
+- Caches search results separately
+- Implements error caching to prevent API spam
+- Auto-cleans expired cache entries
+
+## Getting Started
+
+1. Clone the repository
+```bash
+git clone [repository-url]
+```
+
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Start the development server
+```bash
+npm start
+```
+
+## Development
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Available Scripts
+
+- `npm start`: Runs the app in development mode
+- `npm test`: Launches the test runner
+- `npm run build`: Builds the app for production
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
