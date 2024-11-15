@@ -87,12 +87,12 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
+    <div className="app-container">
+      <header className="app-header">
         <h1>Internet Radio</h1>
       </header>
 
-      <main>
+      <main className="main-content">
         <SearchBar 
           onSearch={handleSearch} 
           initialValue={searchTerm}
@@ -100,14 +100,14 @@ function App() {
         />
         
         {isLoading ? (
-          <div className="loading-container">
+          <div className="loading-state">
             <div className="loading-spinner"></div>
-            <p>Loading radio stations...</p>
+            <p className="loading-text">Loading radio stations...</p>
           </div>
         ) : error ? (
-          <div className="error-container">
-            <p className="error-message">{error}</p>
-            <button onClick={handleRetry} className="retry-button">
+          <div className="error-state">
+            <p className="error-text">{error}</p>
+            <button onClick={handleRetry} className="button retry-button">
               🔄 Retry Loading Stations
             </button>
           </div>
