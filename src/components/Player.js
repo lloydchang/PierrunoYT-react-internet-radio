@@ -27,7 +27,13 @@ function Player({ station }) {
           )}
           <div className="station-metadata">
             {station.tags && (
-              <p className="station-tags">{station.tags.split(',')[0]}</p>
+              <p className="station-tags">
+                {Array.isArray(station.tags) 
+                  ? station.tags[0] 
+                  : typeof station.tags === 'string' 
+                    ? station.tags.split(',')[0] 
+                    : ''}
+              </p>
             )}
             {station.countrycode && (
               <p className="station-country">{station.countrycode}</p>
