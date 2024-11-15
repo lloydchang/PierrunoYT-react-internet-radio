@@ -3,7 +3,7 @@ import './App.css';
 import Player from './components/Player';
 import StationList from './components/StationList';
 import SearchBar from './components/SearchBar';
-import { fetchStations, searchStations } from './services/radioAPI';
+import { fetchStations, searchStations } from './services/shoutcastAPI';
 
 function App() {
   const [stations, setStations] = useState([]);
