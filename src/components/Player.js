@@ -3,6 +3,7 @@ import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import '../styles/RadioApp.css';
 import { radioAPI } from '../services/radioAPI';
+import NowPlaying from './NowPlaying';
 
 function Player({ station }) {
   useEffect(() => {
@@ -42,6 +43,8 @@ function Player({ station }) {
           </div>
         </div>
       </div>
+
+      <NowPlaying station={station} />
 
       <AudioPlayer
         src={station.url_resolved || station.url}
