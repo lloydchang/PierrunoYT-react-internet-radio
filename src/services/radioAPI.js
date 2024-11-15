@@ -1,6 +1,7 @@
 import { RadioBrowserApi } from 'radio-browser-api';
 
-const api = new RadioBrowserApi('InternetRadioWebUI/1.0');
+// Initialize the API with a custom user agent
+const api = new RadioBrowserApi('InternetRadioWebUI/1.0.0');
 
 // Cache for storing search results
 const cache = {
@@ -17,13 +18,19 @@ const isCacheValid = () => {
 };
 
 const handleApiError = (error) => {
-  console.error('API Error:', error);
+  console.error('API Error details:', {
+    message: error.message,
+    stack: error.stack,
+    response: error.response,
+    request: error.request
+  });
+
   if (error.response) {
-    throw new Error(`Server error: ${error.response.status}`);
+    throw new Error(`Server error (${error.response.status}): ${error.response.statusText || 'Unknown error'}`);
   } else if (error.request) {
-    throw new Error('Network error. Please check your connection.');
+    throw new Error(`Network error: Unable to reach radio station server. Please check your connection.`);
   } else {
-    throw new Error('Unable to load radio stations. Please try again later.');
+    throw new Error(`Error loading radio stations: ${error.message}`);
   }
 };
 
@@ -31,11 +38,11 @@ export const fetchStations = async () => {
   try {
     // Return cached results if valid
     if (isCacheValid()) {
+      console.log('Returning cached stations');
       return cache.stations;
     }
 
-    // Let the API choose the best available server
-    await api.setupService();
+    console.log('Fetching stations...');
 
     const stations = await api.searchStations({
       limit: 100,
@@ -44,20 +51,29 @@ export const fetchStations = async () => {
       reverse: true,
     });
 
+    console.log('Raw stations response:', stations);
+
     if (!Array.isArray(stations)) {
-      throw new Error('Invalid response from server');
+      throw new Error('Invalid response from server: expected array of stations');
     }
 
     // Filter out invalid stations
-    const validStations = stations.filter(station => 
-      station && 
-      station.url_resolved && 
-      station.name &&
-      !station.name.toLowerCase().includes('undefined')
-    );
+    const validStations = stations.filter(station => {
+      const isValid = station && 
+        station.url_resolved && 
+        station.name &&
+        !station.name.toLowerCase().includes('undefined');
+      
+      if (!isValid) {
+        console.log('Filtered out invalid station:', station);
+      }
+      return isValid;
+    });
+
+    console.log(`Found ${validStations.length} valid stations`);
 
     if (validStations.length === 0) {
-      throw new Error('No stations found');
+      throw new Error('No valid stations found in the response');
     }
 
     // Cache the results
@@ -66,6 +82,7 @@ export const fetchStations = async () => {
 
     return validStations;
   } catch (error) {
+    console.error('Fetch stations error:', error);
     handleApiError(error);
   }
 };
@@ -76,11 +93,11 @@ export const searchStations = async (searchTerm) => {
     const cacheKey = searchTerm.toLowerCase();
     const cachedResult = cache.searchResults.get(cacheKey);
     if (cachedResult && (Date.now() - cachedResult.timestamp < CACHE_DURATION)) {
+      console.log('Returning cached search results for:', searchTerm);
       return cachedResult.data;
     }
 
-    // Ensure we're using an available server
-    await api.setupService();
+    console.log('Searching for stations with term:', searchTerm);
 
     const stations = await api.searchStations({
       name: searchTerm,
@@ -88,18 +105,25 @@ export const searchStations = async (searchTerm) => {
       hidebroken: true,
     });
 
+    console.log(`Search returned ${stations?.length || 0} stations`);
+
     if (!Array.isArray(stations)) {
-      throw new Error('Invalid response from server');
+      throw new Error('Invalid response from server during search');
     }
 
     // Filter and sort stations
     const validStations = stations
-      .filter(station => 
-        station && 
-        station.url_resolved && 
-        station.name &&
-        !station.name.toLowerCase().includes('undefined')
-      )
+      .filter(station => {
+        const isValid = station && 
+          station.url_resolved && 
+          station.name &&
+          !station.name.toLowerCase().includes('undefined');
+        
+        if (!isValid) {
+          console.log('Filtered out invalid search result:', station);
+        }
+        return isValid;
+      })
       .sort((a, b) => {
         // Sort by relevance and popularity
         const nameA = a.name.toLowerCase();
@@ -114,6 +138,8 @@ export const searchStations = async (searchTerm) => {
         return (parseInt(b.clickcount) || 0) - (parseInt(a.clickcount) || 0);
       });
 
+    console.log(`Found ${validStations.length} valid stations for search term:`, searchTerm);
+
     // Cache the search results
     cache.searchResults.set(cacheKey, {
       data: validStations,
@@ -122,15 +148,20 @@ export const searchStations = async (searchTerm) => {
 
     return validStations;
   } catch (error) {
+    console.error('Search stations error:', error);
     handleApiError(error);
   }
 };
 
 export const reportStationClick = async (stationId) => {
   try {
-    if (!stationId) return;
-    await api.setupService();
+    if (!stationId) {
+      console.warn('No station ID provided for click reporting');
+      return;
+    }
+    console.log('Reporting click for station:', stationId);
     await api.clickStation(stationId);
+    console.log('Click reported successfully');
   } catch (error) {
     console.error('Error reporting station click:', error);
     // Don't throw error for click reporting
