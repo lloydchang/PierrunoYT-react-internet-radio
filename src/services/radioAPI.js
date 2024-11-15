@@ -226,18 +226,36 @@ export const searchStations = async (searchTerm) => {
 
     console.log('Searching for stations with term:', searchTerm);
 
-    const stations = await api.searchStations({
-      name: searchTerm,
-      nameExact: false,
-      limit: 1000,
-      hidebroken: true,
-      bitrateMin: 64,
-      codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
-      removeDuplicates: true,
-      order: 'clickcount',
-      reverse: true,
-      lastCheckOk: true
-    });
+    // Search in batches to get more results
+    const batchSize = 5000;
+    let allStations = [];
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore && offset < 30000) {
+      const batch = await api.searchStations({
+        name: searchTerm,
+        nameExact: false,
+        limit: batchSize,
+        offset: offset,
+        hidebroken: true,
+        bitrateMin: 64,
+        codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
+        removeDuplicates: true,
+        order: 'clickcount',
+        reverse: true,
+        lastCheckOk: true
+      });
+
+      if (!batch || batch.length === 0) {
+        hasMore = false;
+      } else {
+        allStations = [...allStations, ...batch];
+        offset += batchSize;
+      }
+    }
+
+    const stations = allStations;
 
     console.log(`Search returned ${stations?.length || 0} stations`);
 

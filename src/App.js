@@ -61,7 +61,8 @@ function App() {
         const searchResults = await searchStations(term.trim());
         console.log('Search results:', searchResults?.length);
         
-        if (Array.isArray(searchResults) && searchResults.length > 0) {
+        // If we have search results and they're more than just a few stations
+        if (Array.isArray(searchResults) && searchResults.length > 10) {
           setFilteredStations(searchResults);
         } else {
           // Try fallback search in existing stations
