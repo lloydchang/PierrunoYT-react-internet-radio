@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { IoSearchOutline } from 'react-icons/io5';
+import { IoSearchOutline, IoGlobeOutline } from 'react-icons/io5';
 import './App.css';
 import { radioAPI } from './services/radioAPI';
 import Player from './components/Player';
+import Globe3D from './components/Globe';
 
 function App() {
   const [stations, setStations] = useState([]);
@@ -10,12 +11,13 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStation, setCurrentStation] = useState(null);
+  const [showGlobe, setShowGlobe] = useState(false);
 
   const loadStations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await radioAPI.getTopStations();
+      const data = await radioAPI.getTopStations(100); // Increased limit for better globe visualization
       setStations(data);
     } catch (err) {
       setError('Failed to load radio stations. Please try again.');
@@ -51,30 +53,40 @@ function App() {
   const handleStationSelect = useCallback((station) => {
     console.log('Selected station:', station);
     setCurrentStation(station);
+    setShowGlobe(false);
   }, []);
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Internet Radio</h1>
-        <div className="search-bar">
-          <form onSubmit={handleSearch}>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search radio stations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              disabled={loading}
-            />
-            <button 
-              type="submit" 
-              className="search-button"
-              disabled={loading}
-            >
-              <IoSearchOutline />
-            </button>
-          </form>
+        <div className="header-controls">
+          <div className="search-bar">
+            <form onSubmit={handleSearch}>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search radio stations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                disabled={loading}
+              />
+              <button 
+                type="submit" 
+                className="search-button"
+                disabled={loading}
+              >
+                <IoSearchOutline />
+              </button>
+            </form>
+          </div>
+          <button 
+            className="globe-button"
+            onClick={() => setShowGlobe(!showGlobe)}
+            title={showGlobe ? "Show list view" : "Show globe view"}
+          >
+            <IoGlobeOutline />
+          </button>
         </div>
       </header>
 
@@ -89,6 +101,13 @@ function App() {
         <div className="loading-container">
           <div className="loading-spinner" />
           <p>Loading stations...</p>
+        </div>
+      ) : showGlobe ? (
+        <div className="globe-container">
+          <Globe3D 
+            stations={stations}
+            onStationSelect={handleStationSelect}
+          />
         </div>
       ) : stations.length === 0 ? (
         <div className="no-results">

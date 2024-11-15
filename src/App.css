@@ -47,6 +47,39 @@ body {
   margin-bottom: 20px;
 }
 
+/* Header Controls */
+.header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.globe-button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.globe-button:hover {
+  background: rgba(33, 150, 243, 0.1);
+  transform: scale(1.1);
+}
+
+.globe-button:active {
+  transform: scale(0.95);
+}
+
 /* Search Bar */
 .search-bar {
   max-width: 600px;
@@ -161,6 +194,25 @@ body {
   border-radius: 20px;
   font-size: 0.9rem;
   color: var(--text-secondary);
+}
+
+/* Globe Container */
+.globe-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--background-color);
+  z-index: 10;
+}
+
+.globe-container canvas {
+  cursor: grab;
+}
+
+.globe-container canvas:active {
+  cursor: grabbing;
 }
 
 /* Player */
@@ -291,5 +343,18 @@ body {
 
   .player {
     padding: 15px;
+  }
+
+  .header-controls {
+    flex-direction: column;
+    padding: 0 15px;
+  }
+
+  .globe-button {
+    margin-top: -10px;
+  }
+
+  .globe-container {
+    height: calc(100vh - 180px);
   }
 }
