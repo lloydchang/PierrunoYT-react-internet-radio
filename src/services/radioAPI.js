@@ -58,8 +58,9 @@ const handleApiError = (error, context = '') => {
 
 export const fetchStations = async () => {
   try {
+    clearExpiredCache();
     // Return cached results if valid
-    if (isCacheValid()) {
+    if (isCacheValid(cache.timestamp)) {
       console.log('Returning cached stations');
       return cache.stations;
     }
@@ -123,6 +124,7 @@ export const fetchStations = async () => {
 
 export const searchStations = async (searchTerm) => {
   try {
+    clearExpiredCache();
     // Check cache for this search term
     const cacheKey = searchTerm.toLowerCase();
     const cachedResult = cache.searchResults.get(cacheKey);
