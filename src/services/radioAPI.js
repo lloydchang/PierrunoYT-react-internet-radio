@@ -264,7 +264,7 @@ export const reportStationClick = async (stationUuid) => {
       return;
     }
     console.log('Reporting click for station:', stationUuid);
-    await api.clickStation(stationUuid);
+    await api.click(stationUuid);
     console.log('Click reported successfully');
   } catch (error) {
     console.error('Error reporting station click:', error);
