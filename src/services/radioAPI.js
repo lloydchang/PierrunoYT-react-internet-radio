@@ -83,11 +83,15 @@ export const fetchStations = async () => {
     console.log('Fetching stations...');
 
     const stations = await api.searchStations({
-      limit: 500, // Increased limit to get more stations
+      limit: 500,
       hidebroken: true,
       order: 'clickcount',
       reverse: true,
-      lastcheckokonly: true // Only get stations that were reachable on last check
+      lastcheckokonly: true,
+      bitrateMin: 64, // Minimum bitrate for better quality
+      codec: 'MP3,AAC,OGG,OPUS', // Supported codecs
+      hasGeoInfo: true, // Prefer stations with location info
+      removeDuplicates: true // Remove duplicate stations
     });
 
     console.log('Raw stations response:', stations);
@@ -104,7 +108,7 @@ export const fetchStations = async () => {
       // Check for essential properties
       const hasEssentials = Boolean(
         station.stationuuid && 
-        (station.url || station.url_resolved) &&
+        station.url_resolved && // Prefer resolved URL
         station.name
       );
 
@@ -117,10 +121,27 @@ export const fetchStations = async () => {
       const isQualityOk = 
         !station.name.toLowerCase().includes('undefined') &&
         !station.name.toLowerCase().includes('null') &&
-        station.name.length > 1;
+        station.name.length > 1 &&
+        (!station.bitrate || station.bitrate >= 64); // Minimum bitrate threshold
 
       if (!isQualityOk) {
         console.log('Filtered out low quality station:', station);
+        return false;
+      }
+
+      // Codec validation
+      if (station.codec) {
+        const supportedCodecs = ['MP3', 'AAC', 'AAC+', 'OGG', 'OPUS'];
+        const codec = station.codec.toUpperCase();
+        if (!supportedCodecs.some(supported => codec.includes(supported))) {
+          console.log('Filtered out station with unsupported codec:', station.codec);
+          return false;
+        }
+      }
+
+      // HLS stream validation
+      if (station.hls && !station.url_resolved.includes('.m3u8')) {
+        console.log('Filtered out invalid HLS stream:', station);
         return false;
       }
 
