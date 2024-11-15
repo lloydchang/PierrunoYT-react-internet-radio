@@ -3,7 +3,6 @@ import { IoSearchOutline } from 'react-icons/io5';
 import './App.css';
 import { radioAPI } from './services/radioAPI';
 import Player from './components/Player';
-import Globe3D from './components/Globe';
 
 function App() {
   const [stations, setStations] = useState([]);
@@ -52,7 +51,6 @@ function App() {
   const handleStationSelect = useCallback((station) => {
     console.log('Selected station:', station);
     setCurrentStation(station);
-    setShowGlobe(false);
   }, []);
 
   return (
