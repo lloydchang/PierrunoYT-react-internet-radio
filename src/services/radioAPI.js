@@ -3,21 +3,58 @@ import { RadioBrowserApi } from 'radio-browser-api';
 // Initialize the API with custom configuration
 let api = null;
 
+// List of fallback API endpoints
+const API_ENDPOINTS = [
+  'de1.api.radio-browser.info',
+  'fr1.api.radio-browser.info',
+  'at1.api.radio-browser.info'
+];
+
 const initializeApi = async () => {
   if (!api) {
-    try {
-      api = new RadioBrowserApi('InternetRadioWebUI/1.0.0');
-      // Ensure API is ready
-      await api.searchStations({
-        limit: 1,
-        hidebroken: true
-      });
-    } catch (error) {
-      console.error('Failed to initialize Radio Browser API:', error);
-      throw new Error('Unable to connect to radio service. Please try again later.');
+    for (const endpoint of API_ENDPOINTS) {
+      try {
+        api = new RadioBrowserApi('InternetRadioWebUI/1.0.0', endpoint);
+        // Test the connection
+        await api.searchStations({
+          limit: 1,
+          hidebroken: true
+        });
+        console.log(`Successfully connected to ${endpoint}`);
+        break;
+      } catch (error) {
+        console.warn(`Failed to connect to ${endpoint}:`, error);
+        api = null;
+      }
+    }
+    
+    if (!api) {
+      throw new Error('Unable to connect to any radio service endpoint. Please try again later.');
     }
   }
   return api;
+};
+
+// Helper function for exponential backoff
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const fetchWithRetry = async (fetchFn, maxRetries = 3) => {
+  let lastError;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fetchFn();
+    } catch (error) {
+      lastError = error;
+      if (error.message.includes('429')) {
+        const waitTime = Math.min(1000 * Math.pow(2, i), 10000);
+        console.log(`Rate limited, waiting ${waitTime}ms before retry ${i + 1}/${maxRetries}`);
+        await wait(waitTime);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
 };
 
 // Cache for storing search results
@@ -85,16 +122,16 @@ export const fetchStations = async () => {
 
     console.log('Fetching stations...');
 
-    // Fetch stations in parallel batches for better performance
-    const batchSize = 10000;
-    const maxStations = 50000;
+    // Fetch stations in smaller sequential batches to avoid rate limiting
+    const batchSize = 2000;
+    const maxStations = 10000; // Reduced to avoid rate limiting
     let allStations = [];
     
-    // Create array of batch promises
-    const batchPromises = [];
     for (let offset = 0; offset < maxStations; offset += batchSize) {
-      batchPromises.push(
-        api.searchStations({
+      console.log(`Fetching batch ${offset/batchSize + 1}/${Math.ceil(maxStations/batchSize)}...`);
+      
+      const batch = await fetchWithRetry(async () => {
+        return api.searchStations({
           limit: batchSize,
           offset: offset,
           hidebroken: true,
@@ -105,16 +142,15 @@ export const fetchStations = async () => {
           codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
           hasGeoInfo: true,
           removeDuplicates: true
-        })
-      );
-    }
+        });
+      });
 
-    // Fetch all batches in parallel
-    console.log(`Fetching ${batchPromises.length} batches of stations...`);
-    const batchResults = await Promise.all(batchPromises);
-    
-    // Combine all batch results
-    allStations = batchResults.flat().filter(Boolean);
+      if (!batch || batch.length === 0) break;
+      allStations = [...allStations, ...batch];
+      
+      // Small delay between batches to avoid rate limiting
+      await wait(500);
+    }
     console.log(`Total stations fetched: ${allStations.length}`);
 
     const stations = allStations;
