@@ -2,16 +2,18 @@ import React from 'react';
 
 function StationList({ stations, onStationSelect, currentStation }) {
   const formatTags = (tags) => {
-    if (!tags) return '';
+    if (!tags || typeof tags !== 'string') return '';
     return tags.split(',')
+      .filter(tag => tag && tag.trim())
       .slice(0, 3)
       .map(tag => tag.trim())
       .join(' • ');
   };
 
   const getStationLanguage = (station) => {
-    if (!station.language) return '';
-    return station.language.split(',')[0].trim();
+    if (!station?.language || typeof station.language !== 'string') return '';
+    const languages = station.language.split(',');
+    return languages[0]?.trim() || '';
   };
 
   return (

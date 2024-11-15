@@ -8,29 +8,51 @@ const cache = {
   stations: null,
   timestamp: null,
   searchResults: new Map(),
+  errors: new Map()
 };
 
-// Cache duration in milliseconds (5 minutes)
-const CACHE_DURATION = 5 * 60 * 1000;
+// Cache durations in milliseconds
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const ERROR_CACHE_DURATION = 30 * 1000; // 30 seconds
 
-const isCacheValid = () => {
-  return cache.stations && cache.timestamp && (Date.now() - cache.timestamp < CACHE_DURATION);
+const isCacheValid = (timestamp) => {
+  return timestamp && (Date.now() - timestamp < CACHE_DURATION);
 };
 
-const handleApiError = (error) => {
-  console.error('API Error details:', {
+const clearExpiredCache = () => {
+  const now = Date.now();
+  
+  // Clear expired search results
+  for (const [key, value] of cache.searchResults.entries()) {
+    if (now - value.timestamp >= CACHE_DURATION) {
+      cache.searchResults.delete(key);
+    }
+  }
+
+  // Clear expired error cache
+  for (const [key, value] of cache.errors.entries()) {
+    if (now - value.timestamp >= ERROR_CACHE_DURATION) {
+      cache.errors.delete(key);
+    }
+  }
+};
+
+const handleApiError = (error, context = '') => {
+  console.error(`API Error in ${context}:`, {
     message: error.message,
     stack: error.stack,
-    response: error.response,
-    request: error.request
+    response: error?.response,
+    request: error?.request
   });
 
-  if (error.response) {
+  if (error?.response?.status === 429) {
+    throw new Error('Rate limit exceeded. Please try again later.');
+  } else if (error?.response) {
     throw new Error(`Server error (${error.response.status}): ${error.response.statusText || 'Unknown error'}`);
-  } else if (error.request) {
-    throw new Error(`Network error: Unable to reach radio station server. Please check your connection.`);
+  } else if (error?.request) {
+    throw new Error('Network error: Unable to reach radio station server. Please check your connection.');
   } else {
-    throw new Error(`Error loading radio stations: ${error.message}`);
+    throw new Error(`Error ${context ? `during ${context}` : ''}: ${error.message || 'Unknown error occurred'}`);
   }
 };
 
@@ -82,8 +104,20 @@ export const fetchStations = async () => {
 
     return validStations;
   } catch (error) {
-    console.error('Fetch stations error:', error);
-    handleApiError(error);
+    // Check if we've had this error recently
+    const errorKey = error.message;
+    const cachedError = cache.errors.get(errorKey);
+    if (cachedError && (Date.now() - cachedError.timestamp < ERROR_CACHE_DURATION)) {
+      throw cachedError.error;
+    }
+
+    // Cache the error
+    const handledError = handleApiError(error, 'station fetch');
+    cache.errors.set(errorKey, {
+      error: handledError,
+      timestamp: Date.now()
+    });
+    throw handledError;
   }
 };
 
