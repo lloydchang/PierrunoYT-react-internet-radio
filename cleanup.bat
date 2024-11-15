@@ -11,6 +11,8 @@ git rm -f src\services\radioAPI.js
 git rm -f public\logo192.png
 git rm -f public\logo512.png
 git rm -f public\manifest.json
+git rm -f src\components\Globe.js
+git rm -f src\components\GlobeView.js
 
 :: Update index.js to remove reportWebVitals
 echo Updating index.js...
