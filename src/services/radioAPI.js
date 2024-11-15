@@ -5,15 +5,13 @@ let api = null;
 
 const initializeApi = async () => {
   if (!api) {
-    api = new RadioBrowserApi('InternetRadioWebUI/1.0.0');
-    // Get available servers and select one
-    const servers = await api.getServerList();
-    if (!servers || servers.length === 0) {
-      throw new Error('No radio browser servers available');
+    api = new RadioBrowserApi('InternetRadioWebUI/1.0.0', true);
+    try {
+      await api.setupService();
+    } catch (error) {
+      console.error('Failed to setup Radio Browser API:', error);
+      throw new Error('Unable to connect to radio service');
     }
-    // Use a random server from the list
-    const randomIndex = Math.floor(Math.random() * servers.length);
-    api.setBaseUrl(servers[randomIndex]);
   }
   return api;
 };
