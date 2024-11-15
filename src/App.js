@@ -4,6 +4,7 @@ import Player from './components/Player';
 import StationList from './components/StationList';
 import SearchBar from './components/SearchBar';
 import SortControls from './components/SortControls';
+import GlobeView from './components/GlobeView';
 import { radioAPI } from './services/radioAPI';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
   const [sortBy, setSortBy] = useState('popularity');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [showGlobe, setShowGlobe] = useState(false);
   const ITEMS_PER_PAGE = 50;
 
   const loadStations = useCallback(async (pageNum = 1, append = false) => {
@@ -88,56 +90,89 @@ function App() {
     }
   }, [isLoadingMore, hasMore, page, loadStations]);
 
+  const handleCountrySelect = async (countryCode) => {
+    setSearchTerm('');
+    setShowGlobe(false);
+    setPage(1);
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await radioAPI.getStationsByCountry(countryCode, ITEMS_PER_PAGE, 0);
+      setStations(data);
+      setHasMore(data.length === ITEMS_PER_PAGE);
+    } catch (err) {
+      setError('Failed to load stations for selected country');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>Internet Radio</h1>
         <div className="header-controls">
           <SearchBar onSearch={handleSearch} initialValue={searchTerm} disabled={isLoading} />
+          <button 
+            className="globe-button"
+            onClick={() => setShowGlobe(true)}
+            title="Browse stations by country"
+          >
+            🌍
+          </button>
           <SortControls sortBy={sortBy} onSortChange={handleSortChange} />
+        </div>
+        <div className="stations-count">
+          {stations.length} stations loaded
         </div>
       </header>
 
-      <main className="main-content">
-        {!isLoading && !error && stations.length > 0 && (
-          <div className="stations-count">
-            {stations.length} stations loaded
+      {showGlobe && (
+        <>
+          <div className="globe-overlay" onClick={() => setShowGlobe(false)} />
+          <div className="globe-container">
+            <button className="close-globe" onClick={() => setShowGlobe(false)}>×</button>
+            <GlobeView 
+              stations={stations} 
+              onCountrySelect={handleCountrySelect}
+            />
           </div>
-        )}
-        
-        {error && (
-          <div className="error-state">
-            <p className="error-text">{error}</p>
-            <button onClick={() => loadStations(1, false)} className="button retry-button">
-              Retry Loading Stations
-            </button>
-          </div>
-        )}
+        </>
+      )}
 
-        {isLoading && page === 1 ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p className="loading-text">Loading radio stations...</p>
-          </div>
-        ) : (
-          <StationList
-            stations={stations}
-            onStationSelect={handleStationSelect}
-            currentStation={currentStation}
-            sortBy={sortBy}
-            onLoadMore={handleLoadMore}
-            hasMore={hasMore}
-            isLoadingMore={isLoadingMore}
-          />
-        )}
+      {error && (
+        <div className="error-state">
+          <p className="error-text">{error}</p>
+          <button onClick={() => loadStations(1, false)} className="button retry-button">
+            Retry Loading Stations
+          </button>
+        </div>
+      )}
 
-        {currentStation && (
-          <Player
-            station={currentStation}
-            onClose={() => setCurrentStation(null)}
-          />
-        )}
-      </main>
+      {isLoading && page === 1 ? (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading radio stations...</p>
+        </div>
+      ) : (
+        <StationList
+          stations={stations}
+          onStationSelect={handleStationSelect}
+          currentStation={currentStation}
+          sortBy={sortBy}
+          onLoadMore={handleLoadMore}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+        />
+      )}
+
+      {currentStation && (
+        <Player
+          station={currentStation}
+          onClose={() => setCurrentStation(null)}
+        />
+      )}
     </div>
   );
 }
