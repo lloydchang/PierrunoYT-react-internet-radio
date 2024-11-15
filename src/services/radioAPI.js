@@ -200,8 +200,11 @@ export const searchStations = async (searchTerm) => {
 
     const stations = await api.searchStations({
       name: searchTerm,
-      limit: 100,
+      limit: 500,
       hidebroken: true,
+      bitrateMin: 64,
+      codec: 'MP3,AAC,OGG,OPUS',
+      removeDuplicates: true,
     });
 
     console.log(`Search returned ${stations?.length || 0} stations`);
