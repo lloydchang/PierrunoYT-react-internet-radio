@@ -3,6 +3,7 @@
 A modern web application for streaming internet radio stations, built with React. This application provides a clean, intuitive interface for discovering and listening to radio stations from around the world.
 
 ![React Internet Radio](https://img.shields.io/badge/React-Internet_Radio-61DAFB?style=for-the-badge&logo=react)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/PierrunoYT/react-internet-radio/blob/main/LICENSE)
 
 ## Features
 
@@ -42,7 +43,7 @@ src/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/react-internet-radio.git
+git clone https://github.com/PierrunoYT/react-internet-radio.git
 cd react-internet-radio
 ```
 
@@ -76,4 +77,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the [MIT License](https://github.com/PierrunoYT/react-internet-radio/blob/main/LICENSE) - Copyright (c) 2024 PierrunoYT
