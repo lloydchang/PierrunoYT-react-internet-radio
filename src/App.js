@@ -86,7 +86,7 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [stations]);
 
   const handleRetry = () => {
     console.log('Retrying...');
