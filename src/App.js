@@ -1,163 +1,146 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { IoSearchOutline } from 'react-icons/io5';
 import './App.css';
-import Player from './components/Player';
-import StationList from './components/StationList';
-import SearchBar from './components/SearchBar';
-import SortControls from './components/SortControls';
-import GlobeView from './components/GlobeView';
 import { radioAPI } from './services/radioAPI';
+import Player from './components/Player';
 
 function App() {
   const [stations, setStations] = useState([]);
-  const [currentStation, setCurrentStation] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('popularity');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [showGlobe, setShowGlobe] = useState(false);
-  const ITEMS_PER_PAGE = 50;
+  const [currentStation, setCurrentStation] = useState(null);
 
-  const loadStations = useCallback(async (pageNum = 1, append = false) => {
+  const loadStations = useCallback(async () => {
     try {
-      if (pageNum === 1) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
+      setLoading(true);
       setError(null);
-
-      const offset = (pageNum - 1) * ITEMS_PER_PAGE;
-      console.log(`Fetching stations page ${pageNum} (offset: ${offset})...`);
-      
-      let data;
-      if (searchTerm) {
-        data = await radioAPI.getStationsByName(searchTerm, ITEMS_PER_PAGE, offset);
-      } else {
-        data = await radioAPI.getTopStations(ITEMS_PER_PAGE, offset);
-      }
-
-      if (!data || data.length === 0) {
-        setHasMore(false);
-        if (pageNum === 1) {
-          throw new Error('No stations available');
-        }
-        return;
-      }
-
-      setStations(prev => append ? [...prev, ...data] : data);
-      setHasMore(data.length === ITEMS_PER_PAGE);
-      setPage(pageNum);
+      const data = await radioAPI.getTopStations();
+      setStations(data);
     } catch (err) {
+      setError('Failed to load radio stations. Please try again.');
       console.error('Error loading stations:', err);
-      setError(err.message);
     } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
+      setLoading(false);
     }
-  }, [searchTerm, ITEMS_PER_PAGE]);
+  }, []);
 
   useEffect(() => {
-    loadStations(1, false);
+    loadStations();
   }, [loadStations]);
 
-  const handleSearch = useCallback((term) => {
-    setSearchTerm(term);
-    setPage(1);
-    loadStations(1, false);
-  }, [loadStations]);
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      return loadStations();
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await radioAPI.searchStations(searchQuery);
+      setStations(data);
+    } catch (err) {
+      setError('Failed to search radio stations. Please try again.');
+      console.error('Error searching stations:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleStationSelect = useCallback((station) => {
     console.log('Selected station:', station);
     setCurrentStation(station);
   }, []);
 
-  const handleLoadMore = useCallback(() => {
-    if (!isLoadingMore && hasMore) {
-      loadStations(page + 1, true);
-    }
-  }, [isLoadingMore, hasMore, page, loadStations]);
-
-  const handleCountrySelect = async (countryCode) => {
-    setSearchTerm('');
-    setShowGlobe(false);
-    setPage(1);
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await radioAPI.getStationsByCountry(countryCode, ITEMS_PER_PAGE, 0);
-      setStations(data);
-      setHasMore(data.length === ITEMS_PER_PAGE);
-    } catch (err) {
-      setError('Failed to load stations for selected country');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Internet Radio Browser</h1>
-        <div className="controls">
-          <SearchBar onSearch={handleSearch} />
-          <button 
-            className="globe-button"
-            onClick={() => setShowGlobe(true)}
-            title="Browse stations by country"
-          >
-            🌍
-          </button>
-          <SortControls onSort={setSortBy} />
-        </div>
-        <div className="stations-count">
-          {stations.length} stations found
+        <h1>Internet Radio</h1>
+        <div className="search-bar">
+          <form onSubmit={handleSearch}>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search radio stations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={loading}
+            />
+            <button 
+              type="submit" 
+              className="search-button"
+              disabled={loading}
+            >
+              <IoSearchOutline />
+            </button>
+          </form>
         </div>
       </header>
 
-      {showGlobe && (
-        <>
-          <div className="globe-overlay" onClick={() => setShowGlobe(false)} />
-          <div className="globe-container">
-            <button className="close-globe" onClick={() => setShowGlobe(false)}>×</button>
-            <GlobeView 
-              stations={stations} 
-              onCountrySelect={handleCountrySelect}
-            />
-          </div>
-        </>
+      {error ? (
+        <div className="error-container">
+          <p className="error-message">{error}</p>
+          <button className="retry-button" onClick={loadStations}>
+            Try Again
+          </button>
+        </div>
+      ) : loading ? (
+        <div className="loading-container">
+          <div className="loading-spinner" />
+          <p>Loading stations...</p>
+        </div>
+      ) : stations.length === 0 ? (
+        <div className="no-results">
+          <p>No radio stations found.</p>
+          <button className="show-all-button" onClick={loadStations}>
+            Show All Stations
+          </button>
+        </div>
+      ) : (
+        <div className="stations-list">
+          {stations.map((station) => (
+            <div
+              key={station.id || station.stationuuid}
+              className={`station-card ${currentStation?.id === station.id ? 'selected' : ''}`}
+              onClick={() => handleStationSelect(station)}
+              role="button"
+              tabIndex={0}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleStationSelect(station);
+                }
+              }}
+            >
+              <div className="station-info">
+                {station.favicon && (
+                  <img
+                    src={station.favicon}
+                    alt={station.name}
+                    className="station-logo"
+                    onError={(e) => e.target.style.display = 'none'}
+                  />
+                )}
+                <div className="station-details">
+                  <h3>{station.name}</h3>
+                  <div className="station-meta">
+                    {station.tags && (
+                      <span className="station-tag">
+                        {Array.isArray(station.tags)
+                          ? station.tags[0]
+                          : station.tags.split(',')[0]}
+                      </span>
+                    )}
+                    {station.countrycode && (
+                      <span className="station-country">{station.countrycode}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
-
-      <main className="main-content">
-        {error && (
-          <div className="error-state">
-            <p className="error-text">{error}</p>
-            <button onClick={() => loadStations(1, false)} className="retry-button">
-              Retry Loading Stations
-            </button>
-          </div>
-        )}
-
-        {isLoading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading radio stations...</p>
-          </div>
-        ) : (
-          <StationList
-            stations={stations}
-            onStationSelect={handleStationSelect}
-            currentStation={currentStation}
-            sortBy={sortBy}
-            onLoadMore={handleLoadMore}
-            hasMore={hasMore}
-            isLoadingMore={isLoadingMore}
-          />
-        )}
-      </main>
 
       {currentStation && (
         <Player

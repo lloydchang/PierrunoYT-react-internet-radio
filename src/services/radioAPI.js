@@ -1,97 +1,79 @@
 const API_BASE_URL = 'https://de1.api.radio-browser.info/json';
 
-const handleResponse = async (response) => {
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
-    return response.json();
-};
-
 const fetchWithTimeout = async (url, options = {}) => {
-    const timeout = 8000; // 8 seconds timeout
+    const timeout = 8000;
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
+    
     try {
         const response = await fetch(url, {
             ...options,
-            signal: controller.signal
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'Radio WebUI/1.0',
+                ...options.headers
+            }
         });
         clearTimeout(id);
-        return response;
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
     } catch (error) {
         clearTimeout(id);
         throw error;
     }
-};
-
-const fetchStations = async (params) => {
-    try {
-        const queryParams = new URLSearchParams(params);
-        const response = await fetchWithTimeout(`${API_BASE_URL}/stations/search?${queryParams}`);
-        return handleResponse(response);
-    } catch (error) {
-        console.error('Error fetching radio stations:', error);
-        throw error;
-    }
-};
-
-const getStationsByName = async (name, limit = 50, offset = 0) => {
-    return fetchStations({
-        name: name,
-        limit: limit.toString(),
-        offset: offset.toString(),
-        hidebroken: 'true',
-        order: 'votes',
-        reverse: 'true'
-    });
 };
 
 const getTopStations = async (limit = 50, offset = 0) => {
-    const params = new URLSearchParams({
-        limit: limit.toString(),
-        offset: offset.toString(),
-        hidebroken: 'true',
-        order: 'votes',
-        reverse: 'true'
-    });
-
     try {
-        const response = await fetchWithTimeout(`${API_BASE_URL}/stations?${params}`);
-        return handleResponse(response);
+        const params = new URLSearchParams({
+            limit: limit.toString(),
+            offset: offset.toString(),
+            hidebroken: 'true',
+            order: 'votes',
+            reverse: 'true'
+        });
+        
+        return await fetchWithTimeout(`${API_BASE_URL}/stations/search?${params}`);
     } catch (error) {
         console.error('Error fetching top stations:', error);
         throw error;
     }
 };
 
-const getStationsByCountry = async (countryCode, limit = 50, offset = 0) => {
-    const params = new URLSearchParams({
-        countrycode: countryCode.toLowerCase(),
-        limit: limit.toString(),
-        offset: offset.toString(),
-        hidebroken: 'true',
-        order: 'votes',
-        reverse: 'true'
-    });
-
+const searchStations = async (query, limit = 50, offset = 0) => {
     try {
-        const response = await fetchWithTimeout(`${API_BASE_URL}/stations/search?${params}`);
-        return handleResponse(response);
+        const params = new URLSearchParams({
+            name: query,
+            limit: limit.toString(),
+            offset: offset.toString(),
+            hidebroken: 'true'
+        });
+        
+        return await fetchWithTimeout(`${API_BASE_URL}/stations/search?${params}`);
     } catch (error) {
-        console.error('Error fetching stations by country:', error);
+        console.error('Error searching stations:', error);
         throw error;
     }
 };
 
 const getStationsByTag = async (tag, limit = 50, offset = 0) => {
-    return fetchStations({
-        tag: tag,
-        limit: limit.toString(),
-        offset: offset.toString(),
-        hidebroken: 'true',
-        order: 'votes',
-        reverse: 'true'
-    });
+    try {
+        const params = new URLSearchParams({
+            tag,
+            limit: limit.toString(),
+            offset: offset.toString(),
+            hidebroken: 'true'
+        });
+        
+        return await fetchWithTimeout(`${API_BASE_URL}/stations/search?${params}`);
+    } catch (error) {
+        console.error('Error fetching stations by tag:', error);
+        throw error;
+    }
 };
 
 const reportStationClick = async (stationId) => {
@@ -104,29 +86,9 @@ const reportStationClick = async (stationId) => {
     }
 };
 
-const getStationsByCountryCode = async (countryCode, limit = 50, offset = 0) => {
-    const params = new URLSearchParams({
-      countrycode: countryCode.toLowerCase(),
-      limit: limit.toString(),
-      offset: offset.toString(),
-      order: 'votes',
-      reverse: 'true'
-    });
-
-    try {
-      const response = await fetchWithTimeout(`${API_BASE_URL}/stations/search?${params}`);
-      return handleResponse(response);
-    } catch (error) {
-      console.error('Error fetching stations by country:', error);
-      throw error;
-    }
-  };
-
 export const radioAPI = {
-    getStationsByName,
     getTopStations,
-    getStationsByCountry,
+    searchStations,
     getStationsByTag,
-    reportStationClick,
-    getStationsByCountryCode
+    reportStationClick
 };

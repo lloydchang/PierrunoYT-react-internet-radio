@@ -1,73 +1,92 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
+import { IoClose } from 'react-icons/io5';
 import 'react-h5-audio-player/lib/styles.css';
-import '../styles/RadioApp.css';
 import { radioAPI } from '../services/radioAPI';
-import NowPlaying from './NowPlaying';
 
 function Player({ station, onClose }) {
-  useEffect(() => {
-    if (station) {
-      radioAPI.reportStationClick(station.id);
-    }
-  }, [station]);
+    const [error, setError] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
 
-  if (!station) return null;
+    useEffect(() => {
+        if (station) {
+            setError(null);
+            setIsPlaying(false);
+        }
+    }, [station]);
 
-  return (
-    <div className="player">
-      <button className="close-player" onClick={onClose} title="Close player">
-        ×
-      </button>
-      <div className="player-info">
-        <div className="station-details">
-          <h2>{station.name}</h2>
-          {station.favicon && (
-            <img 
-              src={station.favicon} 
-              alt={station.name} 
-              className="station-logo"
-              onError={(e) => e.target.style.display = 'none'}
-            />
-          )}
-          <div className="station-metadata">
-            {station.tags && (
-              <p className="station-tags">
-                {Array.isArray(station.tags) 
-                  ? station.tags[0] 
-                  : typeof station.tags === 'string' 
-                    ? station.tags.split(',')[0] 
-                    : ''}
-              </p>
+    if (!station) return null;
+
+    const handlePlay = () => {
+        setIsPlaying(true);
+        radioAPI.reportStationClick(station.id);
+    };
+
+    const handleError = (e) => {
+        console.error('Audio Player Error:', e);
+        setError('Failed to play this station. Please try another one.');
+        setIsPlaying(false);
+    };
+
+    return (
+        <div className="player">
+            <div className="player-header">
+                <div className="station-info">
+                    {station.favicon && (
+                        <img
+                            src={station.favicon}
+                            alt={station.name}
+                            className="station-logo"
+                            onError={(e) => e.target.style.display = 'none'}
+                        />
+                    )}
+                    <div className="station-details">
+                        <h3>{station.name}</h3>
+                        <div className="station-meta">
+                            {station.tags && (
+                                <span className="station-tag">
+                                    {Array.isArray(station.tags)
+                                        ? station.tags[0]
+                                        : station.tags.split(',')[0]}
+                                </span>
+                            )}
+                            {station.countrycode && (
+                                <span className="station-country">{station.countrycode}</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <button 
+                    className="close-button" 
+                    onClick={onClose}
+                    aria-label="Close player"
+                >
+                    <IoClose />
+                </button>
+            </div>
+
+            {error ? (
+                <div className="player-error">
+                    <p>{error}</p>
+                </div>
+            ) : (
+                <AudioPlayer
+                    src={station.url_resolved || station.url}
+                    showJumpControls={false}
+                    layout="stacked"
+                    customProgressBarSection={[]}
+                    customControlsSection={['MAIN_CONTROLS', 'VOLUME_CONTROLS']}
+                    autoPlayAfterSrcChange={true}
+                    defaultCurrentTime="Live Stream"
+                    defaultDuration="Live"
+                    onPlay={handlePlay}
+                    onError={handleError}
+                    playing={isPlaying}
+                    className="radio-player"
+                />
             )}
-            {station.countrycode && (
-              <p className="station-country">{station.countrycode}</p>
-            )}
-          </div>
         </div>
-      </div>
-
-      <NowPlaying station={station} />
-
-      <AudioPlayer
-        src={station.url_resolved || station.url}
-        showJumpControls={false}
-        layout="stacked"
-        customProgressBarSection={[]}
-        customControlsSection={["MAIN_CONTROLS", "VOLUME_CONTROLS"]}
-        autoPlayAfterSrcChange={true}
-        defaultCurrentTime="Live Stream"
-        defaultDuration="Live"
-        className="radio-player"
-        onError={(e) => {
-          console.error('Audio Player Error:', e);
-        }}
-        onPlay={() => {
-          radioAPI.reportStationClick(station.id);
-        }}
-      />
-    </div>
-  );
+    );
 }
 
 export default Player;
