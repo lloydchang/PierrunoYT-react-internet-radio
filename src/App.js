@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { IoSearchOutline, IoGlobeOutline } from 'react-icons/io5';
+import { IoSearchOutline } from 'react-icons/io5';
 import './App.css';
 import { radioAPI } from './services/radioAPI';
 import Player from './components/Player';
@@ -11,7 +11,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStation, setCurrentStation] = useState(null);
-  const [showGlobe, setShowGlobe] = useState(false);
 
   const loadStations = useCallback(async () => {
     try {
@@ -80,13 +79,6 @@ function App() {
               </button>
             </form>
           </div>
-          <button 
-            className="globe-button"
-            onClick={() => setShowGlobe(!showGlobe)}
-            title={showGlobe ? "Show list view" : "Show globe view"}
-          >
-            <IoGlobeOutline />
-          </button>
         </div>
       </header>
 
@@ -101,13 +93,6 @@ function App() {
         <div className="loading-container">
           <div className="loading-spinner" />
           <p>Loading stations...</p>
-        </div>
-      ) : showGlobe ? (
-        <div className="globe-container">
-          <Globe3D 
-            stations={stations}
-            onStationSelect={handleStationSelect}
-          />
         </div>
       ) : stations.length === 0 ? (
         <div className="no-results">
