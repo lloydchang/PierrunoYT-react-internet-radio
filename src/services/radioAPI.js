@@ -7,11 +7,11 @@ const initializeApi = async () => {
   if (!api) {
     api = new RadioBrowserApi('InternetRadioWebUI/1.0.0');
     // Get available servers and select one
-    const servers = await RadioBrowserApi.getServerList();
+    const servers = await api.getServerList();
     if (!servers || servers.length === 0) {
       throw new Error('No radio browser servers available');
     }
-    // Use the first available server
+    // Use a random server from the list
     const randomIndex = Math.floor(Math.random() * servers.length);
     api.setBaseUrl(servers[randomIndex]);
   }
