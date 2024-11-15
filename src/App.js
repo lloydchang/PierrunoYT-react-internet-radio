@@ -46,24 +46,37 @@ function App() {
     setCurrentStation(station);
   }, []);
 
-  const handleSearch = async (term) => {
+  const handleSearch = useCallback(async (term) => {
     setSearchTerm(term);
     setIsLoading(true);
     setError(null);
 
     try {
-      if (!term.trim()) {
+      if (!term || !term.trim()) {
         console.log('Showing all stations');
         setFilteredStations(stations);
       } else {
         console.log('Searching for:', term);
-        const searchResults = await searchStations(term);
-        if (!searchResults || searchResults.length === 0) {
-          console.log('No results found');
-          setFilteredStations([]);
-        } else {
-          console.log('Search results:', searchResults.length);
+        const searchResults = await searchStations(term.trim());
+        console.log('Search results:', searchResults?.length);
+        
+        if (Array.isArray(searchResults) && searchResults.length > 0) {
           setFilteredStations(searchResults);
+        } else {
+          // Try fallback search in existing stations
+          const localResults = stations.filter(station => 
+            station.name.toLowerCase().includes(term.toLowerCase()) ||
+            (station.tags && station.tags.toLowerCase().includes(term.toLowerCase())) ||
+            (station.country && station.country.toLowerCase().includes(term.toLowerCase()))
+          );
+          
+          if (localResults.length > 0) {
+            console.log('Found local results:', localResults.length);
+            setFilteredStations(localResults);
+          } else {
+            console.log('No results found');
+            setFilteredStations([]);
+          }
         }
       }
     } catch (error) {

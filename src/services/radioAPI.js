@@ -201,11 +201,14 @@ export const searchStations = async (searchTerm) => {
 
     const stations = await api.searchStations({
       name: searchTerm,
+      nameExact: false,
       limit: 1000,
       hidebroken: true,
       bitrateMin: 64,
       codec: 'MP3,AAC,OGG,OPUS',
       removeDuplicates: true,
+      order: 'clickcount',
+      reverse: true
     });
 
     console.log(`Search returned ${stations?.length || 0} stations`);
