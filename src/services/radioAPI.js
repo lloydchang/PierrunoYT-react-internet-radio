@@ -138,42 +138,61 @@ export const fetchStations = async () => {
   try {
     await initializeApi();
     clearExpiredCache();
-    // Return cached results if valid
-    if (isCacheValid(cache.timestamp)) {
+
+    // Return cached results if valid based on server config TTL
+    const cacheTTL = cache.serverConfig?.cache_ttl || 300; // Default 5 min
+    if (cache.stations && cache.timestamp && 
+        (Date.now() - cache.timestamp < cacheTTL * 1000)) {
       console.log('Returning cached stations');
       return cache.stations;
     }
 
     console.log('Fetching stations...');
 
-    // Fetch stations in smaller sequential batches to avoid rate limiting
+    // Get total station count first
+    const stats = await api.getServerStats();
+    const totalStations = stats.stations || 10000;
     const batchSize = 2000;
-    const maxStations = 10000; // Reduced to avoid rate limiting
+    const maxBatches = Math.min(Math.ceil(totalStations / batchSize), 5);
+    
     let allStations = [];
     
-    for (let offset = 0; offset < maxStations; offset += batchSize) {
-      console.log(`Fetching batch ${offset/batchSize + 1}/${Math.ceil(maxStations/batchSize)}...`);
+    for (let i = 0; i < maxBatches; i++) {
+      console.log(`Fetching batch ${i + 1}/${maxBatches}...`);
       
       const batch = await fetchWithRetry(async () => {
         return api.searchStations({
           limit: batchSize,
-          offset: offset,
+          offset: i * batchSize,
           hidebroken: true,
           order: 'clickcount',
           reverse: true,
           lastCheckOk: true,
           bitrateMin: 64,
           codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
-          hasGeoInfo: true,
-          removeDuplicates: true
+          has_geo_info: true,
+          has_extended_info: true,
+          is_https: true
         });
       });
 
       if (!batch || batch.length === 0) break;
-      allStations = [...allStations, ...batch];
       
-      // Small delay between batches to avoid rate limiting
-      await wait(500);
+      // Filter out stations with missing essential data
+      const validStations = batch.filter(station => {
+        return station && 
+               station.name &&
+               station.url_resolved &&
+               station.codec &&
+               station.bitrate >= 64 &&
+               !station.name.toLowerCase().includes('undefined') &&
+               !station.name.toLowerCase().includes('null');
+      });
+
+      allStations = [...allStations, ...validStations];
+      
+      // Respect server rate limits
+      await wait(cache.serverConfig?.check_pause_seconds * 100 || 500);
     }
     console.log(`Total stations fetched: ${allStations.length}`);
 
