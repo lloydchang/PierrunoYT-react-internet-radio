@@ -5,6 +5,8 @@ A modern web application for streaming internet radio stations, built with React
 ![React Internet Radio](https://img.shields.io/badge/React-Internet_Radio-61DAFB?style=for-the-badge&logo=react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/PierrunoYT/react-internet-radio/blob/main/LICENSE)
 
+![Application Screenshot](Screenshot%202024-11-15%20162148.png)
+
 ## Features
 
 - 🎵 Stream radio stations from around the world
