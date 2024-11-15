@@ -5,7 +5,7 @@ import '../styles/RadioApp.css';
 import { radioAPI } from '../services/radioAPI';
 import NowPlaying from './NowPlaying';
 
-function Player({ station }) {
+function Player({ station, onClose }) {
   useEffect(() => {
     if (station) {
       radioAPI.reportStationClick(station.id);
@@ -16,6 +16,9 @@ function Player({ station }) {
 
   return (
     <div className="player">
+      <button className="close-player" onClick={onClose} title="Close player">
+        ×
+      </button>
       <div className="player-info">
         <div className="station-details">
           <h2>{station.name}</h2>

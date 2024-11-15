@@ -20,17 +20,12 @@ function StationList({ stations, onStationSelect, currentStation, sortBy, onLoad
     return languages[0]?.trim() || '';
   };
 
-  // Sort stations based on sortBy parameter
   const sortedStations = [...stations].sort((a, b) => {
     switch (sortBy) {
       case 'country':
-        const countryA = (a.countrycode || '').toUpperCase();
-        const countryB = (b.countrycode || '').toUpperCase();
-        return countryA.localeCompare(countryB);
+        return (a.countrycode || '').localeCompare(b.countrycode || '');
       case 'language':
-        const langA = getStationLanguage(a).toUpperCase();
-        const langB = getStationLanguage(b).toUpperCase();
-        return langA.localeCompare(langB);
+        return getStationLanguage(a).localeCompare(getStationLanguage(b));
       case 'name':
         return (a.name || '').localeCompare(b.name || '');
       case 'popularity':
@@ -50,26 +45,30 @@ function StationList({ stations, onStationSelect, currentStation, sortBy, onLoad
   };
 
   return (
-    <div className="station-list">
-      {sortedStations.map((station, index) => (
-        <div 
-          key={station.id || station.stationuuid}
-          ref={index === sortedStations.length - 1 ? lastStationElementRef : null}
-          className={`station-item ${currentStation?.id === station.id ? 'active' : ''}`}
-          onClick={() => onStationSelect(station)}
-          role="button"
-          tabIndex={0}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              onStationSelect(station);
-            }
-          }}
-        >
-          <div className="station-info">
-            <div className="station-icon">
-              {station.favicon ? (
-                <img 
-                  src={station.favicon} 
+    <div className="stations-list">
+      {sortedStations.map((station, index) => {
+        const isLastElement = index === sortedStations.length - 1;
+        const ref = isLastElement ? lastStationElementRef : null;
+        const isSelected = currentStation?.id === station.id;
+
+        return (
+          <div
+            key={station.id || station.stationuuid}
+            ref={ref}
+            className={`station-card ${isSelected ? 'selected' : ''}`}
+            onClick={() => onStationSelect(station)}
+            role="button"
+            tabIndex={0}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onStationSelect(station);
+              }
+            }}
+          >
+            <div className="station-info">
+              {station.favicon && (
+                <img
+                  src={station.favicon}
                   alt={station.name}
                   className="station-favicon"
                   onError={(e) => {
@@ -79,59 +78,46 @@ function StationList({ stations, onStationSelect, currentStation, sortBy, onLoad
                     )}`;
                   }}
                 />
-              ) : (
+              )}
+              {!station.favicon && (
                 <div className="station-favicon station-favicon-placeholder">
                   📻
                 </div>
               )}
+              <div className="station-details">
+                <h3 className="station-name">{station.name}</h3>
+                <div className="station-meta">
+                  {station.codec && (
+                    <span className="station-codec" title="Audio Format">
+                      {station.codec.toUpperCase()}
+                    </span>
+                  )}
+                  {station.bitrate && (
+                    <span className="station-bitrate" title="Bitrate">
+                      {station.bitrate} kbps
+                    </span>
+                  )}
+                  {station.countrycode && (
+                    <span className="station-country">{station.countrycode}</span>
+                  )}
+                  {getStationLanguage(station) && (
+                    <span className="station-language">{getStationLanguage(station)}</span>
+                  )}
+                  <span className="station-votes">
+                    {station.votes || 0} votes
+                  </span>
+                </div>
+                {formatTags(station.tags) && (
+                  <div className="station-tags">
+                    {formatTags(station.tags)}
+                  </div>
+                )}
+              </div>
             </div>
-            
-            <div className="station-details">
-              <h3 className="station-name">{station.name}</h3>
-              
-              <div className="station-meta">
-                {station.codec && (
-                  <span className="station-codec" title="Audio Format">
-                    {station.codec.toUpperCase()}
-                  </span>
-                )}
-                {station.bitrate && (
-                  <span className="station-bitrate" title="Bitrate">
-                    {station.bitrate} kbps
-                  </span>
-                )}
-              </div>
-
-              <div className="station-info-row">
-                {station.language && (
-                  <span className="station-language" title="Language">
-                    {getStationLanguage(station)}
-                  </span>
-                )}
-                {station.countrycode && (
-                  <span className="station-country" title="Country">
-                    {station.countrycode}
-                  </span>
-                )}
-              </div>
-
-              {station.tags && (
-                <p className="station-tags" title="Tags">
-                  {formatTags(station.tags)}
-                </p>
-              )}
-            </div>
-
-            {station.votes > 0 && (
-              <div className="station-votes" title="Votes">
-                <span className="vote-count">
-                  ⭐ {station.votes}
-                </span>
-              </div>
-            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
+      
       {isLoadingMore && (
         <div className="loading-more">
           <div className="loading-spinner"></div>

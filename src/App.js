@@ -39,8 +39,6 @@ function App() {
         data = await radioAPI.getTopStations(ITEMS_PER_PAGE, offset);
       }
 
-      console.log('Stations fetched:', data?.length);
-      
       if (!data || data.length === 0) {
         setHasMore(false);
         if (pageNum === 1) {
@@ -52,36 +50,28 @@ function App() {
       setStations(prev => append ? [...prev, ...data] : data);
       setHasMore(data.length === ITEMS_PER_PAGE);
       setPage(pageNum);
-    } catch (error) {
-      console.error('Error loading stations:', error);
-      setError(error.message || 'Failed to load radio stations');
-      if (!append) {
-        setStations([]);
-      }
+    } catch (err) {
+      console.error('Error loading stations:', err);
+      setError(err.message);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [searchTerm]);
+  }, [searchTerm, ITEMS_PER_PAGE]);
 
   useEffect(() => {
     loadStations(1, false);
   }, [loadStations]);
 
-  const handleStationSelect = useCallback((station) => {
-    console.log('Selected station:', station?.name);
-    setCurrentStation(station);
-  }, []);
-
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
     setPage(1);
-    setHasMore(true);
     loadStations(1, false);
   }, [loadStations]);
 
-  const handleSortChange = useCallback((newSortBy) => {
-    setSortBy(newSortBy);
+  const handleStationSelect = useCallback((station) => {
+    console.log('Selected station:', station);
+    setCurrentStation(station);
   }, []);
 
   const handleLoadMore = useCallback(() => {
@@ -109,11 +99,11 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>Internet Radio</h1>
-        <div className="header-controls">
-          <SearchBar onSearch={handleSearch} initialValue={searchTerm} disabled={isLoading} />
+    <div className="App">
+      <header className="App-header">
+        <h1>Internet Radio Browser</h1>
+        <div className="controls">
+          <SearchBar onSearch={handleSearch} />
           <button 
             className="globe-button"
             onClick={() => setShowGlobe(true)}
@@ -121,10 +111,10 @@ function App() {
           >
             🌍
           </button>
-          <SortControls sortBy={sortBy} onSortChange={handleSortChange} />
+          <SortControls onSort={setSortBy} />
         </div>
         <div className="stations-count">
-          {stations.length} stations loaded
+          {stations.length} stations found
         </div>
       </header>
 
@@ -141,31 +131,33 @@ function App() {
         </>
       )}
 
-      {error && (
-        <div className="error-state">
-          <p className="error-text">{error}</p>
-          <button onClick={() => loadStations(1, false)} className="button retry-button">
-            Retry Loading Stations
-          </button>
-        </div>
-      )}
+      <main className="main-content">
+        {error && (
+          <div className="error-state">
+            <p className="error-text">{error}</p>
+            <button onClick={() => loadStations(1, false)} className="retry-button">
+              Retry Loading Stations
+            </button>
+          </div>
+        )}
 
-      {isLoading && page === 1 ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Loading radio stations...</p>
-        </div>
-      ) : (
-        <StationList
-          stations={stations}
-          onStationSelect={handleStationSelect}
-          currentStation={currentStation}
-          sortBy={sortBy}
-          onLoadMore={handleLoadMore}
-          hasMore={hasMore}
-          isLoadingMore={isLoadingMore}
-        />
-      )}
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading radio stations...</p>
+          </div>
+        ) : (
+          <StationList
+            stations={stations}
+            onStationSelect={handleStationSelect}
+            currentStation={currentStation}
+            sortBy={sortBy}
+            onLoadMore={handleLoadMore}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+          />
+        )}
+      </main>
 
       {currentStation && (
         <Player
