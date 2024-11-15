@@ -155,7 +155,7 @@ export const fetchStations = async () => {
       console.warn('No stations passed validation criteria. Retrying with relaxed filters...');
       // Retry with more relaxed criteria
       return api.searchStations({
-        limit: 100,
+        limit: 1000,
         hidebroken: true,
         order: 'clickcount',
         reverse: true
