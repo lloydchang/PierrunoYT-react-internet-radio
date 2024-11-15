@@ -84,7 +84,7 @@ export const fetchStations = async () => {
     console.log('Fetching stations...');
 
     const stations = await api.searchStations({
-      limit: 500,
+      limit: 1000,
       hidebroken: true,
       order: 'clickcount',
       reverse: true,
@@ -201,7 +201,7 @@ export const searchStations = async (searchTerm) => {
 
     const stations = await api.searchStations({
       name: searchTerm,
-      limit: 500,
+      limit: 1000,
       hidebroken: true,
       bitrateMin: 64,
       codec: 'MP3,AAC,OGG,OPUS',
