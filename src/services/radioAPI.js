@@ -5,12 +5,16 @@ let api = null;
 
 const initializeApi = async () => {
   if (!api) {
-    api = new RadioBrowserApi('InternetRadioWebUI/1.0.0', true);
     try {
-      await api.setupService();
+      api = new RadioBrowserApi('InternetRadioWebUI/1.0.0');
+      // Ensure API is ready
+      await api.searchStations({
+        limit: 1,
+        hidebroken: true
+      });
     } catch (error) {
-      console.error('Failed to setup Radio Browser API:', error);
-      throw new Error('Unable to connect to radio service');
+      console.error('Failed to initialize Radio Browser API:', error);
+      throw new Error('Unable to connect to radio service. Please try again later.');
     }
   }
   return api;
@@ -86,11 +90,11 @@ export const fetchStations = async () => {
       hidebroken: true,
       order: 'clickcount',
       reverse: true,
-      lastcheckokonly: true,
-      bitrateMin: 64, // Minimum bitrate for better quality
-      codec: 'MP3,AAC,OGG,OPUS', // Supported codecs
-      hasGeoInfo: true, // Prefer stations with location info
-      removeDuplicates: true // Remove duplicate stations
+      lastCheckOk: true,
+      bitrateMin: 64,
+      codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
+      hasGeoInfo: true,
+      removeDuplicates: true
     });
 
     console.log('Raw stations response:', stations);
@@ -203,10 +207,11 @@ export const searchStations = async (searchTerm) => {
       limit: 1000,
       hidebroken: true,
       bitrateMin: 64,
-      codec: 'MP3,AAC,OGG,OPUS',
+      codec: ['MP3', 'AAC', 'OGG', 'OPUS'],
       removeDuplicates: true,
       order: 'clickcount',
-      reverse: true
+      reverse: true,
+      lastCheckOk: true
     });
 
     console.log(`Search returned ${stations?.length || 0} stations`);
