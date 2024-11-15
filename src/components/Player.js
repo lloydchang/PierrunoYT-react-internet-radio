@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
+import '../styles/RadioApp.css';
 import { reportStationClick } from '../services/radioAPI';
 
 function Player({ station }) {

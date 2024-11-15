@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/RadioApp.css';
 
 function StationList({ stations, onStationSelect, currentStation }) {
   const formatTags = (tags) => {

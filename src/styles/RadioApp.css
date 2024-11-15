@@ -1,0 +1,206 @@
+/* Main layout */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  background: #f8f9fa;
+}
+
+/* Station List */
+.station-list {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.station-item {
+  padding: 15px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.station-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: #007bff;
+}
+
+.station-item.active {
+  border-color: #007bff;
+  background: #f8f9ff;
+}
+
+.station-info {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 15px;
+  align-items: center;
+}
+
+.station-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.station-favicon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.station-favicon-placeholder {
+  font-size: 24px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.station-details {
+  overflow: hidden;
+}
+
+.station-name {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.station-meta {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.station-codec, .station-bitrate {
+  font-size: 0.8rem;
+  color: #666;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.station-info-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.station-language, .station-country {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.station-tags {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.station-votes {
+  padding: 4px 8px;
+  background: #fff4e5;
+  border-radius: 6px;
+  color: #f90;
+  font-size: 0.9rem;
+}
+
+/* Player */
+.player {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.player-info {
+  margin-bottom: 20px;
+}
+
+.station-details {
+  text-align: center;
+}
+
+.station-details h2 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+}
+
+.station-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 15px;
+  border-radius: 8px;
+}
+
+.station-metadata {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Audio Player Customization */
+.rhap_container {
+  background: #f8f9fa !important;
+  box-shadow: none !important;
+  padding: 15px !important;
+  border-radius: 8px !important;
+}
+
+.rhap_main-controls-button {
+  color: #007bff !important;
+}
+
+.rhap_volume-button {
+  color: #666 !important;
+}
+
+.rhap_volume-bar {
+  background: #ddd !important;
+}
+
+.rhap_volume-indicator {
+  background: #007bff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .station-info {
+    grid-template-columns: 40px 1fr;
+  }
+  
+  .station-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .station-name {
+    font-size: 1rem;
+  }
+  
+  .station-meta, .station-info-row {
+    flex-wrap: wrap;
+  }
+}
