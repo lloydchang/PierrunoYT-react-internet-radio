@@ -77,10 +77,11 @@ export const fetchStations = async () => {
     console.log('Fetching stations...');
 
     const stations = await api.searchStations({
-      limit: 100,
+      limit: 500, // Increased limit to get more stations
       hidebroken: true,
       order: 'clickcount',
       reverse: true,
+      lastcheckokonly: true // Only get stations that were reachable on last check
     });
 
     console.log('Raw stations response:', stations);
@@ -89,23 +90,48 @@ export const fetchStations = async () => {
       throw new Error('Invalid response from server: expected array of stations');
     }
 
-    // Filter out invalid stations
+    // Filter out invalid stations with more lenient criteria
     const validStations = stations.filter(station => {
-      const isValid = station && 
-        station.url_resolved && 
-        station.name &&
-        !station.name.toLowerCase().includes('undefined');
+      // Basic validation
+      if (!station || typeof station !== 'object') return false;
       
-      if (!isValid) {
-        console.log('Filtered out invalid station:', station);
+      // Check for essential properties
+      const hasEssentials = Boolean(
+        station.stationuuid && 
+        (station.url || station.url_resolved) &&
+        station.name
+      );
+
+      if (!hasEssentials) {
+        console.log('Filtered out station missing essential properties:', station);
+        return false;
       }
-      return isValid;
+
+      // Additional quality checks
+      const isQualityOk = 
+        !station.name.toLowerCase().includes('undefined') &&
+        !station.name.toLowerCase().includes('null') &&
+        station.name.length > 1;
+
+      if (!isQualityOk) {
+        console.log('Filtered out low quality station:', station);
+        return false;
+      }
+
+      return true;
     });
 
     console.log(`Found ${validStations.length} valid stations`);
 
     if (validStations.length === 0) {
-      throw new Error('No valid stations found in the response');
+      console.warn('No stations passed validation criteria. Retrying with relaxed filters...');
+      // Retry with more relaxed criteria
+      return api.searchStations({
+        limit: 100,
+        hidebroken: true,
+        order: 'clickcount',
+        reverse: true
+      });
     }
 
     // Cache the results
