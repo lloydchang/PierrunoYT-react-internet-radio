@@ -3,91 +3,118 @@ import './App.css';
 import Player from './components/Player';
 import StationList from './components/StationList';
 import SearchBar from './components/SearchBar';
+import SortControls from './components/SortControls';
 import { radioAPI } from './services/radioAPI';
 
 function App() {
   const [stations, setStations] = useState([]);
   const [currentStation, setCurrentStation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('popularity');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const ITEMS_PER_PAGE = 50;
 
-  const loadTopStations = useCallback(async () => {
+  const loadStations = useCallback(async (pageNum = 1, append = false) => {
     try {
-      setIsLoading(true);
-      setError(null);
-      console.log('Fetching top stations...');
-      const data = await radioAPI.getTopStations(50);
-      console.log('Stations fetched:', data?.length);
-      if (!data || data.length === 0) {
-        throw new Error('No stations available');
+      if (pageNum === 1) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
       }
-      setStations(data);
+      setError(null);
+
+      const offset = (pageNum - 1) * ITEMS_PER_PAGE;
+      console.log(`Fetching stations page ${pageNum} (offset: ${offset})...`);
+      
+      let data;
+      if (searchTerm) {
+        data = await radioAPI.getStationsByName(searchTerm, ITEMS_PER_PAGE, offset);
+      } else {
+        data = await radioAPI.getTopStations(ITEMS_PER_PAGE, offset);
+      }
+
+      console.log('Stations fetched:', data?.length);
+      
+      if (!data || data.length === 0) {
+        setHasMore(false);
+        if (pageNum === 1) {
+          throw new Error('No stations available');
+        }
+        return;
+      }
+
+      setStations(prev => append ? [...prev, ...data] : data);
+      setHasMore(data.length === ITEMS_PER_PAGE);
+      setPage(pageNum);
     } catch (error) {
       console.error('Error loading stations:', error);
       setError(error.message || 'Failed to load radio stations');
-      setStations([]);
+      if (!append) {
+        setStations([]);
+      }
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  }, []);
+  }, [searchTerm]);
 
   useEffect(() => {
-    loadTopStations();
-  }, [loadTopStations]);
+    loadStations(1, false);
+  }, [loadStations]);
 
   const handleStationSelect = useCallback((station) => {
     console.log('Selected station:', station?.name);
     setCurrentStation(station);
   }, []);
 
-  const handleSearch = useCallback(async (term) => {
+  const handleSearch = useCallback((term) => {
     setSearchTerm(term);
-    setIsLoading(true);
-    setError(null);
+    setPage(1);
+    setHasMore(true);
+    loadStations(1, false);
+  }, [loadStations]);
 
-    try {
-      if (!term || !term.trim()) {
-        await loadTopStations();
-      } else {
-        console.log('Searching for:', term);
-        const searchResults = await radioAPI.getStationsByName(term.trim());
-        console.log('Search results:', searchResults?.length);
-        
-        if (Array.isArray(searchResults) && searchResults.length > 0) {
-          setStations(searchResults);
-        } else {
-          setStations([]);
-          setError('No stations found for your search');
-        }
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-      setError(error.message || 'Error searching stations');
-      setStations([]);
-    } finally {
-      setIsLoading(false);
+  const handleSortChange = useCallback((newSortBy) => {
+    setSortBy(newSortBy);
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore) {
+      loadStations(page + 1, true);
     }
-  }, [loadTopStations]);
+  }, [isLoadingMore, hasMore, page, loadStations]);
 
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>Internet Radio</h1>
-        <SearchBar onSearch={handleSearch} initialValue={searchTerm} disabled={isLoading} />
+        <div className="header-controls">
+          <SearchBar onSearch={handleSearch} initialValue={searchTerm} disabled={isLoading} />
+          <SortControls sortBy={sortBy} onSortChange={handleSortChange} />
+        </div>
       </header>
 
       <main className="main-content">
+        {!isLoading && !error && stations.length > 0 && (
+          <div className="stations-count">
+            {stations.length} stations loaded
+          </div>
+        )}
+        
         {error && (
           <div className="error-state">
             <p className="error-text">{error}</p>
-            <button onClick={loadTopStations} className="button retry-button">
+            <button onClick={() => loadStations(1, false)} className="button retry-button">
               Retry Loading Stations
             </button>
           </div>
         )}
 
-        {isLoading ? (
+        {isLoading && page === 1 ? (
           <div className="loading-state">
             <div className="loading-spinner"></div>
             <p className="loading-text">Loading radio stations...</p>
@@ -95,9 +122,12 @@ function App() {
         ) : (
           <StationList
             stations={stations}
-            isLoading={isLoading}
             onStationSelect={handleStationSelect}
             currentStation={currentStation}
+            sortBy={sortBy}
+            onLoadMore={handleLoadMore}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
           />
         )}
 

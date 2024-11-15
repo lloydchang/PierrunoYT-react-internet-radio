@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import '../styles/RadioApp.css';
-import { reportStationClick } from '../services/radioAPI';
+import { radioAPI } from '../services/radioAPI';
 
 function Player({ station }) {
   useEffect(() => {
     if (station) {
-      reportStationClick(station.id);
+      radioAPI.reportStationClick(station.id);
     }
   }, [station]);
 
@@ -57,7 +57,7 @@ function Player({ station }) {
           console.error('Audio Player Error:', e);
         }}
         onPlay={() => {
-          reportStationClick(station.id);
+          radioAPI.reportStationClick(station.id);
         }}
       />
     </div>

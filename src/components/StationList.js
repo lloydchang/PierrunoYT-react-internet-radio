@@ -1,20 +1,46 @@
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import '../styles/RadioApp.css';
 
-function StationList({ stations, onStationSelect, currentStation, sortBy }) {
+function StationList({ stations, onStationSelect, currentStation, sortBy, onLoadMore, hasMore, isLoadingMore }) {
+  const observer = useRef();
+  const lastStationElementRef = useCallback(node => {
+    if (isLoadingMore) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        onLoadMore();
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoadingMore, hasMore, onLoadMore]);
+
+  const getStationLanguage = (station) => {
+    if (!station?.language || typeof station.language !== 'string') return '';
+    const languages = station.language.split(',');
+    return languages[0]?.trim() || '';
+  };
+
   // Sort stations based on sortBy parameter
   const sortedStations = [...stations].sort((a, b) => {
-    if (sortBy === 'country') {
-      const countryA = (a.countrycode || '').toUpperCase();
-      const countryB = (b.countrycode || '').toUpperCase();
-      return countryA.localeCompare(countryB);
+    switch (sortBy) {
+      case 'country':
+        const countryA = (a.countrycode || '').toUpperCase();
+        const countryB = (b.countrycode || '').toUpperCase();
+        return countryA.localeCompare(countryB);
+      case 'language':
+        const langA = getStationLanguage(a).toUpperCase();
+        const langB = getStationLanguage(b).toUpperCase();
+        return langA.localeCompare(langB);
+      case 'name':
+        return (a.name || '').localeCompare(b.name || '');
+      case 'popularity':
+      default:
+        return (b.votes || 0) - (a.votes || 0);
     }
-    // Default sort by popularity (votes/clicks)
-    return (b.votes || 0) - (a.votes || 0);
   });
+
   const formatTags = (tags) => {
     if (!tags) return '';
-    // Handle both string and array tag formats
     const tagArray = Array.isArray(tags) ? tags : typeof tags === 'string' ? tags.split(',') : [];
     return tagArray
       .filter(tag => tag && tag.trim())
@@ -23,17 +49,12 @@ function StationList({ stations, onStationSelect, currentStation, sortBy }) {
       .join(' • ');
   };
 
-  const getStationLanguage = (station) => {
-    if (!station?.language || typeof station.language !== 'string') return '';
-    const languages = station.language.split(',');
-    return languages[0]?.trim() || '';
-  };
-
   return (
     <div className="station-list">
-      {sortedStations.map(station => (
+      {sortedStations.map((station, index) => (
         <div 
           key={station.id || station.stationuuid}
+          ref={index === sortedStations.length - 1 ? lastStationElementRef : null}
           className={`station-item ${currentStation?.id === station.id ? 'active' : ''}`}
           onClick={() => onStationSelect(station)}
           role="button"
@@ -111,6 +132,12 @@ function StationList({ stations, onStationSelect, currentStation, sortBy }) {
           </div>
         </div>
       ))}
+      {isLoadingMore && (
+        <div className="loading-more">
+          <div className="loading-spinner"></div>
+          <p>Loading more stations...</p>
+        </div>
+      )}
     </div>
   );
 }
