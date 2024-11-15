@@ -1,15 +1,16 @@
 @echo off
 echo Cleaning up unused files...
 
-:: Delete unused files
-del /f /q src\App.test.js
-del /f /q src\logo.svg
-del /f /q src\reportWebVitals.js
-del /f /q src\setupTests.js
-del /f /q src\services\radioAPI.js
-del /f /q public\logo192.png
-del /f /q public\logo512.png
-del /f /q public\manifest.json
+:: Remove files from git
+echo Removing files from git...
+git rm -f src\App.test.js
+git rm -f src\logo.svg
+git rm -f src\reportWebVitals.js
+git rm -f src\setupTests.js
+git rm -f src\services\radioAPI.js
+git rm -f public\logo192.png
+git rm -f public\logo512.png
+git rm -f public\manifest.json
 
 :: Update index.js to remove reportWebVitals
 echo Updating index.js...
@@ -18,5 +19,9 @@ powershell -Command "(Get-Content src\index.js) -replace 'import reportWebVitals
 :: Update index.html to remove manifest and logo references
 echo Updating index.html...
 powershell -Command "(Get-Content public\index.html) -replace '<link rel=\"apple-touch-icon\".*\n', '' -replace '<link rel=\"manifest\".*\n', '' | Set-Content public\index.html"
+
+:: Stage the modified files
+git add src\index.js
+git add public\index.html
 
 echo Cleanup complete!
