@@ -228,10 +228,21 @@ body {
 }
 
 .player-header {
+  margin-bottom: 20px;
+}
+
+.station-main-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.station-info {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  width: 100%;
 }
 
 .close-button {
@@ -245,6 +256,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: var(--transition);
+  margin-left: auto;
 }
 
 .close-button:hover {

@@ -32,37 +32,39 @@ function Player({ station, onClose }) {
         <div className="player">
             <div className="player-header">
                 <div className="station-info">
-                    {station.favicon && (
-                        <img
-                            src={station.favicon}
-                            alt={station.name}
-                            className="station-logo"
-                            onError={(e) => e.target.style.display = 'none'}
-                        />
-                    )}
-                    <div className="station-details">
-                        <h3>{station.name}</h3>
-                        <div className="station-meta">
-                            {station.tags && (
-                                <span className="station-tag">
-                                    {Array.isArray(station.tags)
-                                        ? station.tags[0]
-                                        : station.tags.split(',')[0]}
-                                </span>
-                            )}
-                            {station.countrycode && (
-                                <span className="station-country">{station.countrycode}</span>
-                            )}
+                    <div className="station-main-info">
+                        {station.favicon && (
+                            <img
+                                src={station.favicon}
+                                alt={station.name}
+                                className="station-logo"
+                                onError={(e) => e.target.style.display = 'none'}
+                            />
+                        )}
+                        <div className="station-details">
+                            <h3>{station.name}</h3>
+                            <div className="station-meta">
+                                {station.tags && (
+                                    <span className="station-tag">
+                                        {Array.isArray(station.tags)
+                                            ? station.tags[0]
+                                            : station.tags.split(',')[0]}
+                                    </span>
+                                )}
+                                {station.countrycode && (
+                                    <span className="station-country">{station.countrycode}</span>
+                                )}
+                            </div>
                         </div>
                     </div>
+                    <button 
+                        className="close-button" 
+                        onClick={onClose}
+                        aria-label="Close player"
+                    >
+                        <IoClose />
+                    </button>
                 </div>
-                <button 
-                    className="close-button" 
-                    onClick={onClose}
-                    aria-label="Close player"
-                >
-                    <IoClose />
-                </button>
             </div>
 
             {error ? (
