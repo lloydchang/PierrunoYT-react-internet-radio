@@ -1,7 +1,15 @@
 import { RadioBrowserApi } from 'radio-browser-api';
 
-// Initialize the API with a custom user agent
-const api = new RadioBrowserApi('InternetRadioWebUI/1.0.0');
+// Initialize the API with custom configuration
+let api = null;
+
+const initializeApi = async () => {
+  if (!api) {
+    api = new RadioBrowserApi('InternetRadioWebUI/1.0.0', true); // true enables automatic server selection
+    await api.setupService();
+  }
+  return api;
+};
 
 // Cache for storing search results
 const cache = {
@@ -58,6 +66,7 @@ const handleApiError = (error, context = '') => {
 
 export const fetchStations = async () => {
   try {
+    await initializeApi();
     clearExpiredCache();
     // Return cached results if valid
     if (isCacheValid(cache.timestamp)) {
@@ -124,6 +133,7 @@ export const fetchStations = async () => {
 
 export const searchStations = async (searchTerm) => {
   try {
+    await initializeApi();
     clearExpiredCache();
     // Check cache for this search term
     const cacheKey = searchTerm.toLowerCase();
@@ -189,14 +199,15 @@ export const searchStations = async (searchTerm) => {
   }
 };
 
-export const reportStationClick = async (stationId) => {
+export const reportStationClick = async (stationUuid) => {
   try {
-    if (!stationId) {
-      console.warn('No station ID provided for click reporting');
+    await initializeApi();
+    if (!stationUuid) {
+      console.warn('No station UUID provided for click reporting');
       return;
     }
-    console.log('Reporting click for station:', stationId);
-    await api.clickStation(stationId);
+    console.log('Reporting click for station:', stationUuid);
+    await api.clickStation(stationUuid);
     console.log('Click reported successfully');
   } catch (error) {
     console.error('Error reporting station click:', error);
