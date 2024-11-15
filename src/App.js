@@ -104,6 +104,9 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <h1>Internet Radio</h1>
+        <button onClick={handleShowAll} className="show-all-button">
+          Show All Stations
+        </button>
       </header>
 
       <main className="main-content">
