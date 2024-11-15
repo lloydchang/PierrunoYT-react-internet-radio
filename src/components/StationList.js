@@ -1,7 +1,17 @@
 import React from 'react';
 import '../styles/RadioApp.css';
 
-function StationList({ stations, onStationSelect, currentStation }) {
+function StationList({ stations, onStationSelect, currentStation, sortBy }) {
+  // Sort stations based on sortBy parameter
+  const sortedStations = [...stations].sort((a, b) => {
+    if (sortBy === 'country') {
+      const countryA = (a.countrycode || '').toUpperCase();
+      const countryB = (b.countrycode || '').toUpperCase();
+      return countryA.localeCompare(countryB);
+    }
+    // Default sort by popularity (votes/clicks)
+    return (b.votes || 0) - (a.votes || 0);
+  });
   const formatTags = (tags) => {
     if (!tags) return '';
     // Handle both string and array tag formats
@@ -21,7 +31,7 @@ function StationList({ stations, onStationSelect, currentStation }) {
 
   return (
     <div className="station-list">
-      {stations.map(station => (
+      {sortedStations.map(station => (
         <div 
           key={station.id || station.stationuuid}
           className={`station-item ${currentStation?.id === station.id ? 'active' : ''}`}

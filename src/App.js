@@ -13,6 +13,7 @@ function App() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+  const [sortBy, setSortBy] = useState('popularity'); // 'popularity' or 'country'
 
   const loadStations = useCallback(async () => {
     try {
@@ -135,14 +136,30 @@ function App() {
           </div>
         ) : (
           <>
-            <div className="stations-count">
-              Showing {filteredStations.length} stations
-              {searchTerm && ` for "${searchTerm}"`}
+            <div className="stations-header">
+              <div className="stations-count">
+                Showing {filteredStations.length} stations
+                {searchTerm && ` for "${searchTerm}"`}
+              </div>
+              <div className="sort-controls">
+                <label>
+                  Sort by:
+                  <select 
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="sort-select"
+                  >
+                    <option value="popularity">Popularity</option>
+                    <option value="country">Country</option>
+                  </select>
+                </label>
+              </div>
             </div>
             <StationList 
               stations={filteredStations} 
               onStationSelect={handleStationSelect}
               currentStation={currentStation}
+              sortBy={sortBy}
             />
           </>
         )}
