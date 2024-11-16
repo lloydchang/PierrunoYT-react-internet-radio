@@ -1,3 +1,32 @@
+/* Theme Variables */
+:root {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-tertiary: #888;
+  --border-color: #eee;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --accent-color: #007bff;
+  --accent-hover: #0056b3;
+  --tag-bg: #f0f0f0;
+  --error-color: #dc3545;
+}
+
+[data-theme='dark'] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-tertiary: #999999;
+  --border-color: #404040;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --accent-color: #4d9fff;
+  --accent-hover: #3d7fff;
+  --tag-bg: #404040;
+  --error-color: #ff4d4d;
+}
+
 /* CSS Reset and Base Styles */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -18,7 +47,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
-  color: #333;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 }
 
 code {

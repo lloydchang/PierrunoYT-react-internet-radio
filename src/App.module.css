@@ -1,22 +1,46 @@
 .app {
   min-height: 100vh;
-  background: #f8f9fa;
+  background: var(--bg-primary);
 }
 
 .header {
-  background: #ffffff;
+  background: var(--bg-secondary);
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
+.headerTop {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 20px;
+}
+
 .title {
   text-align: center;
-  margin: 0 0 20px 0;
-  color: #333;
+  margin: 0;
+  color: var(--text-primary);
   font-size: 28px;
+}
+
+.themeToggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  padding: 8px;
+  border-radius: 50%;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.themeToggle:hover {
+  color: var(--text-primary);
+  background-color: var(--tag-bg);
 }
 
 .headerControls {
