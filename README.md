@@ -1,6 +1,6 @@
 # React Internet Radio
 
-A modern web application for streaming internet radio stations, built with React. This application provides a clean, intuitive interface for discovering and listening to radio stations from around the world.
+A modern web application for streaming internet radio stations, built with React. This application provides a clean, intuitive interface for discovering and listening to radio stations from around the world, with support for both light and dark modes.
 
 ![React Internet Radio](https://img.shields.io/badge/React-Internet_Radio-61DAFB?style=for-the-badge&logo=react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/PierrunoYT/react-internet-radio/blob/main/LICENSE)
@@ -13,15 +13,18 @@ A modern web application for streaming internet radio stations, built with React
 - 🔍 Real-time station search functionality
 - 📻 Detailed station information display
 - 🎧 Built-in audio player with controls
+- 🌓 Light and dark theme support
 - 💫 Responsive and modern user interface
 - 🚀 Performance optimized with smart caching
 
 ## Tech Stack
 
-- **Frontend Framework**: React
+- **Frontend Framework**: React 18
 - **State Management**: React Context API
-- **Styling**: CSS Modules
-- **API Integration**: Custom Radio Browser API service
+- **Styling**: CSS Modules with Theme Support
+- **Audio Player**: React H5 Audio Player
+- **Icons**: React Icons
+- **API Integration**: Radio Browser API
 
 ## Project Structure
 
