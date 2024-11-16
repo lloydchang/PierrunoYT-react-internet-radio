@@ -3,14 +3,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #ffffff;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--bg-secondary);
+  box-shadow: 0 -2px 10px var(--shadow-color);
   z-index: 1000;
 }
 
 .header {
   padding: 16px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .stationInfo {
@@ -40,7 +40,7 @@
 .name {
   margin: 0 0 4px 0;
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .meta {
@@ -50,16 +50,16 @@
 }
 
 .tag {
-  background: #f0f0f0;
+  background: var(--tag-bg);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .country {
   font-size: 12px;
-  color: #888;
+  color: var(--text-tertiary);
 }
 
 .closeButton {
@@ -67,7 +67,7 @@
   border: none;
   padding: 8px;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,19 +75,19 @@
 }
 
 .closeButton:hover {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .error {
   padding: 16px;
   text-align: center;
-  color: #dc3545;
-  background: #fff;
+  color: var(--error-color);
+  background: var(--bg-secondary);
 }
 
 /* Custom styles for react-h5-audio-player */
 .radioPlayer {
-  background: #fff !important;
+  background: var(--bg-secondary) !important;
   box-shadow: none !important;
 }
 
@@ -108,5 +108,14 @@
 }
 
 .radioPlayer :global(.rhap_time) {
-  color: #666;
+  color: var(--text-secondary) !important;
+}
+
+.radioPlayer :global(.rhap_button-clear) {
+  color: var(--text-primary) !important;
+}
+
+.radioPlayer :global(.rhap_volume-button),
+.radioPlayer :global(.rhap_volume-bar) {
+  color: var(--text-primary) !important;
 }
