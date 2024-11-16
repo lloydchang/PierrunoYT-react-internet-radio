@@ -1,21 +1,21 @@
 .card {
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 16px;
   margin: 12px 0;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 .card.selected {
-  border: 2px solid #007bff;
-  background: #f8f9ff;
+  border: 2px solid var(--accent-color);
+  background: var(--bg-primary);
 }
 
 .stationInfo {
@@ -38,7 +38,7 @@
 .name {
   margin: 0 0 8px 0;
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .meta {
@@ -48,14 +48,14 @@
 }
 
 .tag {
-  background: #f0f0f0;
+  background: var(--tag-bg);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .country {
   font-size: 14px;
-  color: #888;
+  color: var(--text-tertiary);
 }
